@@ -4,34 +4,29 @@ function setup() {
 }
 
 function draw() {
-  background(0, 20, 40);
+  // fond blanc demandé
+  background(255);
 
-  // Grande fleur centrale remplaçant l'ellipse orange
+  // Grande fleur centrale (pétales verts foncés, centre rose vif)
   drawFlower(
     width / 2,
     height / 2 + 4,
     2.0,
     12,
-    [255, 200, 50, 255], // trait jaune/orangé vif pour forte contrainte
-    [255, 255, 255, 255] // centre en blanc
+    [6, 120, 60, 255], // pétales : vert foncé
+    [255, 60, 150, 255] // centre : rose vif (contraste)
   );
 
-  // Petites fleurs extérieures (contours magenta + cyan pour contraste)
+  // Petites fleurs extérieures : alternance rose / vert pour contraste
   for (let i = 0; i < 3; i++) {
     let x = cos((i * PI * 2) / 3) * 150;
     let y = sin((i * PI * 2) / 3) * 100;
 
-    // alternance de couleurs pour contraste
-    let strokeCol = i % 2 === 0 ? [255, 60, 180, 255] : [40, 255, 230, 255];
+    // alternance : index pair -> rose (pétales), vert (centre) ; impair -> vert (pétales), rose (centre)
+    let petalCol = i % 2 === 0 ? [255, 80, 160, 255] : [10, 140, 70, 255];
+    let centerCol = i % 2 === 0 ? [10, 140, 70, 255] : [255, 80, 160, 255];
 
-    drawFlower(
-      width / 2 + x,
-      height / 2 + y,
-      0.9,
-      8,
-      strokeCol,
-      [255, 255, 255, 200]
-    );
+    drawFlower(width / 2 + x, height / 2 + y, 0.9, 8, petalCol, centerCol);
   }
 }
 
@@ -51,13 +46,14 @@ function drawFlower(
   strokeJoin(ROUND);
 
   const [pr, pg, pb, pa] = petalStroke;
+  const [cr, cg, cb, ca] = centerStroke;
 
-  // pétales : outlines en courbes de Bézier + nervures blanches pour contraste
+  // pétales : outlines en courbes de Bézier + nervures en couleur de centre (contraste sur fond blanc)
   for (let j = 0; j < petals; j++) {
     push();
     rotate((j * TWO_PI) / petals);
 
-    // contour du pétale
+    // contour du pétale (couleur pétale)
     stroke(pr, pg, pb, pa);
     strokeWeight(max(1, 2 * scale));
     beginShape();
@@ -80,8 +76,8 @@ function drawFlower(
     );
     endShape(CLOSE);
 
-    // nervures internes (blanc semi-opaque pour fort contraste)
-    stroke(255, 230);
+    // nervures internes (utilisent la couleur du centre pour contraste)
+    stroke(cr, cg, cb, ca * 0.9);
     strokeWeight(max(0.6, 0.9 * scale));
     for (let v = 0; v < 3; v++) {
       beginShape();
@@ -100,19 +96,14 @@ function drawFlower(
     pop();
   }
 
-  // centre : anneau et rayons en contraste élevé
-  stroke(
-    centerStroke[0],
-    centerStroke[1],
-    centerStroke[2],
-    centerStroke[3] ?? 255
-  );
+  // centre : anneau en couleur de centre
+  stroke(cr, cg, cb, ca ?? 255);
   strokeWeight(2 * scale);
   noFill();
   circle(0, 0, 18 * scale);
 
-  // petits rayons blancs dans le centre pour texture
-  stroke(255, 220);
+  // petits rayons dans le centre (même couleur que le centre pour lisibilité sur blanc)
+  stroke(cr, cg, cb, ca * 0.95);
   strokeWeight(1 * scale);
   let rays = 12;
   for (let k = 0; k < rays; k++) {
@@ -125,7 +116,7 @@ function drawFlower(
   pop();
 }
 
-// Nouvelle fonction utilitaire pour dessiner une feuille (forme allongée, orientée)
+// Nouvelle fonction utilitaire pour dessiner une feuille (non utilisée ici mais conservée)
 function drawLeaf(cx, cy, angle = 0, scale = 1, color = [255, 255, 255, 230]) {
   push();
   translate(cx, cy);
